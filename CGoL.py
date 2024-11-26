@@ -2,20 +2,26 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 import os
+import pygame
+
+pygame.init()
+
+WIDTH, HEIGHT = 800, 800
+ROWS, COLS = 50, 50
+CELL_SIZE = WIDTH // COLS
+
+ALIVE_COLOR = (0, 255, 0)
+DEAD_COLOR = (0, 0, 0)
+GRID_COLOR = (40, 40, 40)
+
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Conway's Game of Life")
+clock = pygame.time.Clock()
+
 
 def initialize_grid(rows, cols, random_fill=True):
-    if random_fill:
-        return np.random.choice([0,1], size=(rows,cols))
-    else:
-        return np.zeros((rows, cols), dtype=int)
-    
-
-def display_grid_with_plot(grid, generation):
-    plt.clf()
-    plt.imshow(grid, cmap='binary')
-    plt.title(f"Generation: {generation}")
-    plt.axis('off')
-    plt.pause(0.3)    
+    return np.random.choice([0,1], size=(rows, cols))
+      
 
 def count_neighbors(grid, x, y):
     rows, cols = grid.shape
@@ -42,25 +48,32 @@ def next_generation(grid):
 
 
 
-def display_grid(grid):
-    os.system('cls' if os.name == 'nt' else 'clear')
-    for row in grid:
-        print(' '.join('█' if cell else ' ' for cell in row))
+def draw_grid(screen, grid):
+    rows, cols = grid.shape
+    for x in range(rows):
+        for y in range(cols):
+            cell_color = ALIVE_COLOR if grid[x, y] == 1 else DEAD_COLOR
+            pygame.draw.rect(screen, cell_color, (y * CELL_SIZE, x * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+            pygame.draw.rect(screen, GRID_COLOR, (y * CELL_SIZE, x * CELL_SIZE, CELL_SIZE, CELL_SIZE), 1)
 
 
-def run_simulation(rows, cols, generations):
+def run_simulation(rows, cols):
     grid = initialize_grid(rows, cols)
-    plt.ion()
-    for gen in range(generations):
-        display_grid_with_plot(grid, gen)
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running =  False
+
         grid = next_generation(grid)
-    plt.ioff()
-    plt.show()
+        screen.fill(DEAD_COLOR)
+        draw_grid(screen, grid)
+        pygame.display.flip()
+
+        clock.tick(10)
+
+    pygame.quit()
 
 
-ROWS = 20
-COLS = 40
-GENERATIONS = 100
-
-run_simulation(ROWS, COLS, GENERATIONS)
+run_simulation(ROWS, COLS)
         
